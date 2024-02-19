@@ -43,7 +43,14 @@ class FastApiDispatcher(Dispatcher):
 
     def _get_environ(self):
         environ = self.request.httprequest.environ
-        environ["wsgi.input"] = self.request.httprequest._get_stream_for_parsing()
+        wrapped_request = getattr(
+            self.request.httprequest, "_HTTPRequest__wrapped", None
+        )
+        environ["wsgi.input"] = (
+            wrapped_request._get_stream_for_parsing()
+            if wrapped_request
+            else self.request.httprequest._get_stream_for_parsing()
+        )
         return environ
 
     @contextmanager
